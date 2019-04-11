@@ -134,7 +134,7 @@ def walkFolder(writer, folder):
                 loadFile(writer, filename)
 ############# END for walkFolder
 
-walkFolder(writer, r"/Users/athc5/Downloads/JupyterNotebookRecommender/notebooks")
+walkFolder(writer, os.getcwd() + "/notebooks")
 
 
 # Commit changes
