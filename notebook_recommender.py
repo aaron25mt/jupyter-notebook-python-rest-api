@@ -7,27 +7,6 @@ from whoosh.qparser import QueryParser
 from whoosh import scoring
 import os, os.path
 
-
-#####################################
-#Create the schema
-#####################################
-schema = Schema(filename=ID(stored=True),
-                cell_no=TEXT(stored=True),
-                content=TEXT(analyzer=StemmingAnalyzer())
-               )
-
-
-#####################################
-# Create the index and initialize a `writer`
-#####################################
-
-# Note, this clears the existing index in the directory
-ix = index.create_in("notebooks", schema)
-
-# Get a writer form the created index in
-writer = ix.writer()
-
-
 def visibleTextFromNB(filename):
     '''
     This function pulls all the non-output visible cells from
@@ -134,29 +113,49 @@ def walkFolder(writer, folder):
                 loadFile(writer, filename)
 ############# END for walkFolder
 
-walkFolder(writer, os.getcwd() + "/notebooks")
+def setup():
+    #####################################
+    #Create the schema
+    #####################################
+    schema = Schema(filename=ID(stored=True),
+                    cell_no=TEXT(stored=True),
+                    content=TEXT(analyzer=StemmingAnalyzer())
+                   )
 
 
-# Commit changes
-writer.commit() # save changes
+    #####################################
+    # Create the index and initialize a `writer`
+    #####################################
 
-# Get input, conver to unicode
-qstr = input("Input a query: ")
+    # Note, this clears the existing index in the directory
+    ix = index.create_in("notebooks", schema)
 
-print("searching for",qstr)
+    # Get a writer form the created index in
+    writer = ix.writer()
 
-####################################
-# Build query parser and parse query
-####################################
-qp = QueryParser("content", schema=ix.schema)
-q = qp.parse(qstr)
+    walkFolder(writer, os.getcwd() + "/notebooks")
 
-print(q)
+    # Commit changes
+    writer.commit() # save changes
+    return ix
 
-####################################
-# Search the content field
-####################################
-with ix.searcher(weighting=scoring.TF_IDF()) as s:
-    results = s.search(q)
-    for hit in results:
-        print("Cell {} of Notebook '{}'".format(hit['cell_no'],hit['filename']))
+def querySchema(ix, query):
+    ####################################
+    # Build query parser and parse query
+    ####################################
+    qp = QueryParser("content", schema=ix.schema)
+    q = qp.parse(query)
+
+    # print(q)
+
+    ####################################
+    # Search the content field
+    ####################################
+    notebooks = []
+
+    with ix.searcher(weighting=scoring.TF_IDF()) as s:
+        results = s.search(q)
+        for hit in results:
+            notebooks.append({"filename": hit['filename'], "cell_no": hit['cell_no']})
+
+    return notebooks
