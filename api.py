@@ -22,6 +22,7 @@ def make_app():
         (r"/api/rec/jupyter", MainHandler),
         (r'/notebooks/(.*)', tornado.web.StaticFileHandler, {'path': notebooks_path_dir}),
     ])
+
 if __name__ == "__main__":
     app = make_app()
     ix = setup()
