@@ -156,6 +156,6 @@ def querySchema(ix, query):
     with ix.searcher(weighting=scoring.TF_IDF()) as s:
         results = s.search(q)
         for hit in results:
-            notebooks.append({"filename": hit['filename'], "cell_no": hit['cell_no']})
+            notebooks.append({"filename": os.path.basename(hit['filename']), "cell_no": hit['cell_no']})
 
     return notebooks
