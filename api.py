@@ -10,12 +10,22 @@ PORT = 8001
 notebooks_path_dir = os.path.join(os.path.dirname(__file__), "notebooks")
 
 class MainHandler(tornado.web.RequestHandler):
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+
     async def get(self):
         if (ix is None):
             return
         keyword = self.get_argument("keyword", None, True)
         notebooks = querySchema(ix, keyword)
         self.write({"notebooks": notebooks})
+
+    def options(self):
+        self.set_status(204)
+        self.finish()
 
 def make_app():
     return tornado.web.Application([
